@@ -6,7 +6,7 @@
 //            3- Global variables
 //            4- State definitions
 //            5- Flash sensor functions
-//            6- Button functions
+//            6- Switch functions
 //            7- Timing functions
 //            8- Display functions
 //            9- Displaying current variable values function in Serial Monitor
@@ -18,38 +18,40 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // The push-button pins
-#define CHANGE_BUTTON_PIN 8
-#define SELECT_BUTTON_PIN 7 
+#define CHANGE_SWITCH_PIN 9
+#define SELECT_SWITCH_PIN 10
+#define AUX_SWITCH_PIN 11
 
 // The display/shift register pins
-#define OE 6
-#define SDI 3
-#define CLK 4
-#define LE 5
+#define OE 4
+#define SDI 8
+#define CLK 1
+#define LE 0
 
 // The flash sensor pin
 #define FLASH_SENSOR_PIN 2
 
 // The flash trigger pin
-#define FLASH_PIN 12
+#define FLASH_PIN 7
 
 // The flash pins
-#define RED_LED 9      //PWM enabled
-#define GREEN_LED 10   //PWM enabled
-#define BLUE_LED 11    //PWM enabled
+#define RED_LED 3     //PWM enabled
+#define GREEN_LED 5   //PWM enabled
+#define BLUE_LED 6    //PWM enabled
 
 ///////////////////////////////////////////////////////////////////////////////
 //      Section 2 - User Interface configurable parameters
 ///////////////////////////////////////////////////////////////////////////////
 
+// Do we count preflashes?
 boolean preFlashStatus = false;     
 //true or false (1 or 0)
 int preFlashLimit = 1;              
 //Between 1-9
 int flashPower = 1;                 
 //Between 1-9
-int flashColor = 1;                 
-//As default between 1-4. 1=White, 2=Red, 3=Green, 4=Blue [See Section-3 --> int flashColors]
+int flashColor = 0;                 
+//As default between 0-3. 0=White, 1=Red, 2=Green, 3=Blue [See Section-3 --> int flashColors]
 //If new colors are to be implemented, adjustments are required in [Section-3 --> int flashColors]
 //and [tab "State _Machine.h" --> case FLASH_COLOR_STATE: --> if(flashColor == X)]
 boolean customStateStatus = true;
@@ -59,6 +61,11 @@ boolean customStateStatus = true;
 //      Section 3 - Global variables
 ///////////////////////////////////////////////////////////////////////////////
 
+// shutterOpenDelay is used to aim the occurrence of the flash in the shutter-open interval
+// May be different from camera to camera and dependent on camera settings
+int shutterOpenDelay = 70;
+
+// For your convenience if you want to play with colours
 int flashColors [4][3] = 
 {
   {
@@ -76,10 +83,10 @@ int flashColors [4][3] =
 };
 
 
-boolean previousChangeButtonState = false;
-boolean changeButtonState;
-boolean previousSelectButtonState = false;
-boolean selectButtonState;
+boolean previousChangeSwitchState = false;
+boolean changeSwitchState;
+boolean previousSelectSwitchState = false;
+boolean selectSwitchState;
 boolean previousFlashSensorState = false;
 boolean flashSensorState;
 
@@ -100,8 +107,7 @@ long duration = 3000;
 
 typedef enum
 {
-  IDLE_STATE,
-  MANUAL_FLASH_STATE,
+  NORMAL_STATE,
   OPTION_A_STATE,
   OPTION_B_STATE,
   OPTION_C_STATE,
@@ -111,7 +117,11 @@ typedef enum
   PREFLASH_COUNT_STATE,
   FLASH_POWER_STATE,
   FLASH_COLOR_STATE,
-  CUSTOM_STATE  
+  MANUAL_FLASH_STATE,
+  FLASH_TRAIN_STATE,
+  COUNT_PREFLASH_STATE,
+  DO_FLASH_STATE,
+  CUSTOM_STATE 
 }
 _current_state;
 
@@ -159,46 +169,46 @@ boolean flash_sensor_triggered()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-//      Section 6 - Button functions
+//      Section 6 - Switch functions
 ///////////////////////////////////////////////////////////////////////////////
 
 //     When called, test if the "change" button is pressed
 
-boolean change_button_pressed()
+boolean change_switch_pressed()
 {
   boolean buttonState = false;
-  changeButtonState = digitalRead(CHANGE_BUTTON_PIN) ; 
+  changeSwitchState = digitalRead(CHANGE_SWITCH_PIN) ; 
 
-  if (changeButtonState != previousChangeButtonState)
+  if (changeSwitchState != previousChangeSwitchState)
   {
 
-    if (changeButtonState == LOW)
+    if (changeSwitchState == LOW)
     {
       delay(10);
-      if (changeButtonState == LOW)
+      if (changeSwitchState == LOW)
       {
         buttonState = true;
       }
     }
 
   }
-  previousChangeButtonState = changeButtonState;
+  previousChangeSwitchState = changeSwitchState;
   return buttonState;
 
 }
 
 //     When called, test if the "select" button is pressed
 
-boolean select_button_pressed()
+boolean select_switch_pressed()
 {
 
   boolean buttonState = false;
-  selectButtonState = digitalRead(SELECT_BUTTON_PIN);
+  selectSwitchState = digitalRead(SELECT_SWITCH_PIN);
 
-  if (selectButtonState != previousSelectButtonState)
+  if (selectSwitchState != previousSelectSwitchState)
   {
 
-    if (selectButtonState == LOW)
+    if (selectSwitchState == LOW)
     {
       delay(10);
       {
@@ -208,7 +218,7 @@ boolean select_button_pressed()
 
 
   }
-  previousSelectButtonState = selectButtonState;
+  previousSelectSwitchState = selectSwitchState;
   return buttonState;
 
 }
@@ -294,7 +304,7 @@ void LED_display()
   switch (current_state)
   {
 
-  case IDLE_STATE:
+  case NORMAL_STATE:
     {
       display (character[18]);
       break;  
@@ -352,20 +362,7 @@ void LED_display()
       display (character[flashPower]);
       break;  
     }
-
-  case FLASH_COLOR_STATE:
-    {
-      display (character[flashColor]);
-      break;  
-    }
-
-  case CUSTOM_STATE:
-    {
-      display (character[customStateStatus]);
-      break;  
-    }
   }
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -384,14 +381,7 @@ void print_current_status()
   Serial.println ();
   Serial.print("Flash power is= ");
   Serial.print(flashPower);
-  Serial.println ();
-  Serial.print("Flash color is= ");
-  Serial.print(flashColor);
-  Serial.println ();
-  Serial.print("Custom function is= ");
-  Serial.print(customStateStatus);
-  Serial.println ();
-  
+  Serial.println ();  
 }
 
 

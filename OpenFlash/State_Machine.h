@@ -1,21 +1,19 @@
 ///////////////////////////////////////////////////////////////////////////////
-// This is the State Machine function,
-// In order to jump to a certain state, use ctrl+f, (CMD+F) and type the state name you are looking for.
-// Most code in this section is 
+// This is the state machine function,
+// In order to jump to a certain state, use ctrl+f (Windows), (cmd+F on MacOS)
+// and type the state name you are looking for.
 ///////////////////////////////////////////////////////////////////////////////
 
 void state_machine ()
 {
-
   switch (current_state)
   {
-
-  case IDLE_STATE:
-
+///////////////////////////////////////////////////////////////////////////////
+  case NORMAL_STATE:
     {
       LED_display();
 
-      if (select_button_pressed())
+      if (select_switch_pressed())
       {
         timer_reset();
         Serial.println ();
@@ -23,70 +21,35 @@ void state_machine ()
         current_state = OPTION_A_STATE;  
       }
 
-      if (change_button_pressed())
+      if (change_switch_pressed())
       {
         timer_reset();
         Serial.println ();
         Serial.println ("ENTERING MANUAL FLASH STATE");
         Serial.println ("MANUAL FLASH ARMED");
         current_state = MANUAL_FLASH_STATE;
-
       }
 
       if (flash_sensor_triggered())
       {
         timer_reset();
-        if (customStateStatus == true)
-        {
-          Serial.println ();
-          Serial.println ("SENSOR TRIGGERED");
-          flash_train();
-          current_state = IDLE_STATE;
-        }
-
-        if (customStateStatus == false)
-        {
-          Serial.println ();
-          Serial.println ("SENSOR TRIGGERED");
-          flash_train();
-          current_state = IDLE_STATE;
-        }        
-
-      }
-
-      break;
-
-    }
-
-  case MANUAL_FLASH_STATE:
-
-    {
-      LED_display();
-      if (select_button_pressed())
-      {
-        timer_reset();
-        manual_flash_train();
-        current_state = IDLE_STATE;
-      }
-
-      if (timeout())
-      {
-        timer_reset();
         Serial.println ();
-        Serial.println ("ENTERING IDLE_STATE");
-        current_state = IDLE_STATE;
-        print_current_status();
+        Serial.println ("SENSOR TRIGGERED");
+        Serial.println ("ENTERING FLASH STATE");
+        current_state = FLASH_TRAIN_STATE;
       }
-
       break;
     }
 
+///////////////////////////////////////////////////////////////////////////////
+// States related menu navigation and option setting
+///////////////////////////////////////////////////////////////////////////////
   case OPTION_A_STATE:
 
     {
       LED_display();
 
-      if (change_button_pressed())
+      if (change_switch_pressed())
       {
         timer_reset();
         Serial.println ();
@@ -95,7 +58,7 @@ void state_machine ()
         current_state = OPTION_B_STATE;
       }
 
-      if (select_button_pressed())
+      if (select_switch_pressed())
       {
         timer_reset(); 
         Serial.println ();
@@ -107,8 +70,8 @@ void state_machine ()
       {
         timer_reset();
         Serial.println ();
-        Serial.println ("ENTERING IDLE_STATE");
-        current_state = IDLE_STATE;
+        Serial.println ("ENTERING NORMAL_STATE");
+        current_state = NORMAL_STATE;
         print_current_status();
       }
 
@@ -121,7 +84,7 @@ void state_machine ()
     {
       LED_display();
 
-      if (change_button_pressed())
+      if (change_switch_pressed())
       {
         timer_reset();
         preFlashStatus = 1 - preFlashStatus;
@@ -130,7 +93,7 @@ void state_machine ()
 
       }
 
-      if (select_button_pressed())
+      if (select_switch_pressed())
       {
         timer_reset();
         Serial.println ();
@@ -154,7 +117,7 @@ void state_machine ()
     {
       LED_display();
 
-      if (change_button_pressed())
+      if (change_switch_pressed())
       {
         timer_reset();
         Serial.println ();
@@ -162,7 +125,7 @@ void state_machine ()
         current_state = OPTION_C_STATE;        
       }
 
-      if (select_button_pressed())
+      if (select_switch_pressed())
       {
         timer_reset();
         Serial.println ();
@@ -174,8 +137,8 @@ void state_machine ()
       {
         timer_reset();
         Serial.println ();
-        Serial.println ("ENTERING IDLE_STATE");
-        current_state = IDLE_STATE;
+        Serial.println ("ENTERING NORMAL_STATE");
+        current_state = NORMAL_STATE;
         print_current_status();
       }
 
@@ -188,7 +151,7 @@ void state_machine ()
     {
       LED_display();
 
-      if (change_button_pressed())
+      if (change_switch_pressed())
       {
         timer_reset();
         preFlashLimit ++;
@@ -202,7 +165,7 @@ void state_machine ()
         Serial.println (preFlashLimit);
       }
 
-      if (select_button_pressed())
+      if (select_switch_pressed())
       {
         timer_reset();
         Serial.println ();
@@ -226,15 +189,15 @@ void state_machine ()
     {
       LED_display();
 
-      if (change_button_pressed())
+      if (change_switch_pressed())
       {
         timer_reset();
         Serial.println ();
-        Serial.println ("ENTERING OPTION_D_STATE");
-        current_state = OPTION_D_STATE;        
+        Serial.println ("ENTERING OPTION_A_STATE");
+        current_state = OPTION_A_STATE;        
       }
 
-      if (select_button_pressed())
+      if (select_switch_pressed())
       {
         timer_reset();
         Serial.println ();
@@ -246,8 +209,8 @@ void state_machine ()
       {
         timer_reset();
         Serial.println ();
-        Serial.println ("ENTERING IDLE_STATE");
-        current_state = IDLE_STATE;        
+        Serial.println ("ENTERING NORMAL_STATE");
+        current_state = NORMAL_STATE;        
         print_current_status();
       }
 
@@ -260,7 +223,7 @@ void state_machine ()
     {
       LED_display();
 
-      if (change_button_pressed())
+      if (change_switch_pressed())
       {
         timer_reset();
         flashPower ++;
@@ -274,7 +237,7 @@ void state_machine ()
         Serial.println (flashPower);
       }
 
-      if (select_button_pressed())
+      if (select_switch_pressed())
       {
         timer_reset();
         Serial.println ();
@@ -294,145 +257,103 @@ void state_machine ()
 
     }
 
-  case OPTION_D_STATE:
+///////////////////////////////////////////////////////////////////////////////
+// States related to causing a manual flash
+///////////////////////////////////////////////////////////////////////////////
+  case MANUAL_FLASH_STATE:
 
     {
       LED_display();
-
-      if (change_button_pressed())
+      
+      if (select_switch_pressed())
       {
         timer_reset();
         Serial.println ();
-        Serial.println ("ENTERING OPTION_E_STATE");  
-        current_state = OPTION_E_STATE;
-      }
-
-      if (select_button_pressed())
-      {
-        timer_reset();
-        Serial.println ();
-        Serial.println ("ENTERING FLASH_COLOR_STATE");
-        current_state = FLASH_COLOR_STATE;
+        Serial.println ("ENTERING DO_FLASH_STATE");
+        current_state = DO_FLASH_STATE;
+        print_current_status();
       }
 
       if (timeout())
       {
         timer_reset();
         Serial.println ();
-        Serial.println ("ENTERING IDLE_STATE");
-        current_state = IDLE_STATE;
-        print_current_status();        
-      }
-
-      break;
-
-    }
-
-  case FLASH_COLOR_STATE:
-
-    {
-      LED_display();
-
-      if (change_button_pressed())
-      {
-        timer_reset();
-        flashColor ++;
-
-        if(flashColor == 5)  // Change this number if you made changes to the "int flashColors"
-        {
-          flashColor = 1;
-        }
-
-        re_initialize_flashpins();
-        Serial.println ();
-        Serial.println (flashColor);
-      }
-
-      if (select_button_pressed())
-      {
-        timer_reset();
-        Serial.println ();
-        Serial.println ("ENTERING OPTION_D_STATE");
-        current_state = OPTION_D_STATE;        
-      }
-
-      if (timeout())
-      {
-        timer_reset();
-        Serial.println ();
-        Serial.println ("ENTERING OPTION_D_STATE");
-        current_state = OPTION_D_STATE;        
-      }
-
-      break;
-
-    }
-
-  case OPTION_E_STATE:
-
-    {
-      LED_display();
-
-      if (change_button_pressed())
-      {
-        timer_reset();
-        Serial.println ();
-        Serial.println ("ENTERING OPTION_A_STATE");
-        current_state = OPTION_A_STATE;        
-      }
-
-      if (select_button_pressed())
-      {
-        timer_reset();
-        Serial.println ();
-        Serial.println ("ENTERING CUSTOM_STATE");
-        current_state = CUSTOM_STATE;        
-      }
-
-      if (timeout())
-      {
-        timer_reset();
-        Serial.println ();
-        Serial.println ("ENTERING IDLE_STATE");
-        current_state = IDLE_STATE;        
+        Serial.println ("ENTERING NORMAL_STATE");
+        current_state = NORMAL_STATE;
         print_current_status();
       }
 
       break;
-
     }
+///////////////////////////////////////////////////////////////////////////////
+// States related detecting a manual flash
+///////////////////////////////////////////////////////////////////////////////
 
-  case CUSTOM_STATE:
-
+  case FLASH_TRAIN_STATE:
+    {
+      LED_display();
+      
+      if (preFlashStatus == ON)
+      {
+        Serial.println ();
+        Serial.println ("ENTERING COUNT_PREFLASH_STATE");
+        current_state = COUNT_PREFLASH_STATE;
+        print_current_status();
+      }
+      else // preFlashStatus == OFF
+      {
+        Serial.println ();
+        Serial.println ("ENTERING DO_FLASH_STATE");
+        current_state = DO_FLASH_STATE;
+        print_current_status();
+      }
+      
+	  break;
+    }
+  case COUNT_PREFLASH_STATE:
     {
       LED_display();
 
-      if (change_button_pressed())
+      currentPreFlashCount++;    // don't forget to count the first flash that brought us here
+      Serial.println ();
+      Serial.println ("STARTED COUNTING FLASHES");
+      Serial.println ();
+      Serial.print("current count=");
+      Serial.print(currentPreFlashCount);
+      
+      if (currentPreFlashCount < (preFlashLimit + 1))
       {
-        timer_reset();        
-        customStateStatus = 1 - customStateStatus;
         Serial.println ();
-        Serial.println (customStateStatus);  
+        Serial.println ("ENTERING NORMAL_STATE");
+        current_state = NORMAL_STATE;
+        print_current_status();
       }
-
-      if (select_button_pressed())
+      else
       {
-        timer_reset();
+        currentPreFlashCount = 0;
         Serial.println ();
-        Serial.println ("ENTERING OPTION_E_STATE");
-        current_state = OPTION_E_STATE;        
+        Serial.println ("ENTERING DO_FLASH_STATE");
+        current_state = DO_FLASH_STATE;
+        print_current_status();
       }
-
-      if (timeout())
-      {
-        timer_reset();
-        Serial.println ();
-        Serial.println ("ENTERING OPTION_E_STATE");
-        current_state = OPTION_E_STATE;        
-      }
+      break;
+    }
+  case DO_FLASH_STATE:
+    {
+      LED_display();
+      
+      delay(shutterOpenDelay);
+      digitalWrite(FLASH_PIN, HIGH);
+      delay(map(flashPower, 1, 9, 10, 50));
+      digitalWrite(FLASH_PIN, LOW);
+      Serial.println ();
+      Serial.println ("FLASH_TRAIN_SUCCESSFUL");
+      Serial.println ();
+      Serial.println ("ENTERING NORMAL_STATE");
+      current_state = NORMAL_STATE;
+      print_current_status();
 
       break;
-
     }
   }
 }

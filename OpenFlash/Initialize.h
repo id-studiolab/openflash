@@ -23,12 +23,12 @@ void initialize()
 
   //    Initialize all 2 buttons and the flash sensor as INPUT  
   pinMode       (FLASH_SENSOR_PIN, INPUT);
-  pinMode       (CHANGE_BUTTON_PIN, INPUT);
-  pinMode       (SELECT_BUTTON_PIN, INPUT);
+  pinMode       (CHANGE_SWITCH_PIN, INPUT);
+  pinMode       (SELECT_SWITCH_PIN, INPUT);
 
   //    Initialize the input variables 
-  boolean changeButtonState = digitalRead(CHANGE_BUTTON_PIN);  //get the initial value of the buttons, so that we know if they change state later on.
-  boolean selectButtonState = digitalRead(SELECT_BUTTON_PIN);
+  boolean changeSwitchState = digitalRead(CHANGE_SWITCH_PIN);  //get the initial value of the buttons, so that we know if they change state later on.
+  boolean selectSwitchState = digitalRead(SELECT_SWITCH_PIN);
   boolean flashSensorState = digitalRead(FLASH_SENSOR_PIN);
 
   //    Initialize the pins that are required for the shift register that is used to drive the display  
