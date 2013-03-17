@@ -87,6 +87,8 @@ boolean previousChangeSwitchState = false;
 boolean changeSwitchState;
 boolean previousSelectSwitchState = false;
 boolean selectSwitchState;
+boolean previousAuxSwitchState = false;
+boolean auxSwitchState;
 boolean previousFlashSensorState = false;
 boolean flashSensorState;
 
@@ -190,7 +192,6 @@ boolean change_switch_pressed()
         buttonState = true;
       }
     }
-
   }
   previousChangeSwitchState = changeSwitchState;
   return buttonState;
@@ -215,10 +216,32 @@ boolean select_switch_pressed()
         buttonState = true;
       }
     }
-
-
   }
   previousSelectSwitchState = selectSwitchState;
+  return buttonState;
+
+}
+
+//     When called, test if the "aux" button is pressed
+
+boolean aux_switch_pressed()
+{
+
+  boolean buttonState = false;
+  auxSwitchState = digitalRead(AUX_SWITCH_PIN);
+
+  if (auxSwitchState != previousAuxSwitchState)
+  {
+
+    if (auxSwitchState == LOW)
+    {
+      delay(10);
+      {
+        buttonState = true;
+      }
+    }
+  }
+  previousAuxSwitchState = auxSwitchState;
   return buttonState;
 
 }
