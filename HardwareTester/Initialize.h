@@ -41,7 +41,7 @@ void initialize()
   digitalWrite  (CLK,LOW);
   digitalWrite  (LE,LOW);
   digitalWrite  (SDI,LOW);
-  digitalWrite  (OE,HIGH);
+  digitalWrite  (OE,LOW);
   delay(100);
 
 }

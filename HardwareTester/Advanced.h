@@ -301,11 +301,9 @@ uint8_t character [20] =
 
 void display(int bits) 
 {
-  digitalWrite(OE,HIGH);
   shiftOut(SDI, CLK, LSBFIRST, bits);
   digitalWrite(LE,HIGH);
   digitalWrite(LE,LOW);
-  digitalWrite(OE,LOW);
 }
 
 //     Select what to display on the LED_display according to the current state
@@ -327,7 +325,7 @@ void LED_display()
     }
    case TEST_SELECT_STATE:
     {
-      display (character[14]);
+      display (character[5]);
       break;  
     }
   case TEST_CHANGE_STATE:
